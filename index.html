@@ -1,351 +1,526 @@
 <!doctype html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Best-Fit · Mejor Ajuste — Grupo 12</title>
-  <meta name="description" content="Blog del Grupo 12 (AE1 – Sistemas Operativos) sobre el algoritmo Best-Fit de asignación de memoria: concepto, funcionamiento, ejemplo resuelto y autoevaluación.">
+  <meta name="description"
+    content="Blog del Grupo 12 (AE1 – Sistemas Operativos) sobre el algoritmo Best-Fit de asignación de memoria: concepto, funcionamiento, ejemplo resuelto y autoevaluación.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-<header class="hero">
-  <div class="hero-inner">
-    <div class="eyebrow">Sistemas Operativos · AE1 · Grupo 12 · UCP Corrientes</div>
-    <h1 class="title">Best&#8209;Fit: asignación de memoria por mejor ajuste</h1>
-    <p class="subtitle">Cómo un sistema operativo decide, entre todos los huecos libres de memoria, cuál es el que menos desperdicia — y qué le cuesta esa elección.</p>
-    <div class="meta-row">
-      <span><b>Tema 12</b> — Algoritmos de asignación contigua (First&#8209;Fit / Best&#8209;Fit / Worst&#8209;Fit)</span>
-      <span><b>Integrantes</b> — Enzo, Fabricio y Lautaro</span>
-      <span><b>Cátedra</b> — Luque / Montiel</span>
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="eyebrow">Sistemas Operativos · AE1 · Grupo 12 · UCP Corrientes</div>
+      <h1 class="title">Best&#8209;Fit: asignación de memoria por mejor ajuste</h1>
+      <p class="subtitle">Cómo un sistema operativo decide, entre todos los huecos libres de memoria, cuál es el que
+        menos desperdicia — y qué le cuesta esa elección.</p>
+      <div class="meta-row">
+        <span><b>Tema 12</b> — Algoritmos de asignación contigua (First&#8209;Fit / Best&#8209;Fit /
+          Worst&#8209;Fit)</span>
+        <span><b>Integrantes</b> — Enzo, Fabricio y Lautaro</span>
+      </div>
     </div>
-  </div>
-</header>
+  </header>
 
-<div class="shell layout">
-  <nav class="toc" aria-label="Navegación de secciones">
-    <ol>
-      <li><a href="#introduccion" class="tc"><span class="tag addr">0x00</span> Introducción</a></li>
-      <li><a href="#concepto" class="tc"><span class="tag addr">0x01</span> Concepto</a></li>
-      <li><a href="#caracteristicas" class="tc"><span class="tag addr">0x02</span> Características</a></li>
-      <li><a href="#funcionamiento" class="tc"><span class="tag addr">0x03</span> Funcionamiento</a></li>
-      <li><a href="#ejemplo" class="tc"><span class="tag addr">0x04</span> Ejemplo práctico</a></li>
-      <li><a href="#ventajas" class="tc"><span class="tag addr">0x05</span> Ventajas / Desventajas</a></li>
-      <li><a href="#aplicaciones" class="tc"><span class="tag addr">0x06</span> Aplicaciones</a></li>
-      <li><a href="#video" class="tc"><span class="tag addr">0x07</span> Video</a></li>
-      <li><a href="#cuestionario" class="tc"><span class="tag addr">0x08</span> Cuestionario</a></li>
-      <li><a href="#fuentes" class="tc"><span class="tag addr">0x09</span> Fuentes</a></li>
-      <li><a href="#equipo" class="tc"><span class="tag addr">0x0A</span> Equipo</a></li>
-    </ol>
-  </nav>
-
-  <main>
-
-    <section id="introduccion">
-      <span class="tag">0x00 — Introducción</span>
-      <h2>Por qué importa dónde se guarda cada proceso</h2>
-      <p class="lede">Cuando un programa se ejecuta, el sistema operativo tiene que encontrarle un lugar en la memoria principal (RAM) para cargarlo. En los esquemas de <b>asignación contigua con particiones variables</b>, la memoria libre queda repartida en "huecos" de distintos tamaños, y cada vez que llega un proceso nuevo hay que decidir en cuál de esos huecos ubicarlo.</p>
-      <p>Esa decisión no es trivial: elegir mal significa dejar espacios sueltos, cada vez más chicos e inútiles, hasta que el sistema tiene memoria libre de sobra pero ninguna porción lo bastante grande y contigua para el próximo proceso. A ese problema se lo conoce como <b>fragmentación externa</b>, y es la razón por la que existen distintas estrategias de asignación — entre ellas, First&#8209;Fit, Worst&#8209;Fit y la que trabajamos en este grupo: <b>Best&#8209;Fit</b>.</p>
-    </section>
-
-    <section id="concepto">
-      <span class="tag">0x01 — Concepto</span>
-      <h2>¿Qué es Best&#8209;Fit?</h2>
-      <p>Best&#8209;Fit (mejor ajuste) es un algoritmo de asignación de memoria que, ante un proceso nuevo, recorre <b>toda</b> la lista de huecos libres y le asigna el <b>más chico de los que todavía alcanzan</b> para contenerlo. La idea es simple: si el proceso mide 212&nbsp;KB, no tiene sentido meterlo en un hueco de 600&nbsp;KB si hay uno de 300&nbsp;KB que también le entra — conviene guardar el hueco grande para un proceso que después lo necesite.</p>
-      <p>En otras palabras, busca minimizar el espacio que sobra después de cada asignación, dejando el remanente más pequeño posible en cada partición usada.</p>
-    </section>
-
-    <section id="caracteristicas">
-      <span class="tag">0x02 — Características</span>
-      <h2>Características principales</h2>
-      <ul>
-        <li><b>Búsqueda exhaustiva:</b> a diferencia de First&#8209;Fit, no se detiene en el primer hueco que sirve — revisa todos los huecos disponibles antes de decidir.</li>
-        <li><b>Criterio de selección:</b> de todos los huecos con tamaño ≥ al proceso, elige el de menor tamaño.</li>
-        <li><b>Minimiza el remanente por asignación:</b> el espacio que queda libre después de ubicar el proceso es, por definición, el menor posible en esa asignación puntual.</li>
-        <li><b>Costo computacional más alto:</b> si la lista de huecos no está ordenada por tamaño, cada asignación implica recorrerla entera — más lento que First&#8209;Fit a medida que crece la cantidad de huecos.</li>
-        <li><b>Tiende a generar fragmentos muy chicos:</b> justamente por ajustar tanto, suele dejar sobras diminutas que ya no le sirven a casi ningún proceso futuro.</li>
-      </ul>
-    </section>
-
-    <section id="funcionamiento">
-      <span class="tag">0x03 — Funcionamiento</span>
-      <h2>Cómo decide, paso a paso</h2>
-      <p>Para cada proceso nuevo que llega, el sistema operativo repite esta secuencia sobre la lista de huecos libres:</p>
-
-      <figure>
-        <svg viewBox="0 0 560 500" role="img" aria-label="Diagrama de flujo del algoritmo Best-Fit: recorre todos los huecos libres, se queda con el más chico que alcance, lo asigna y divide el hueco en parte ocupada y fragmento libre.">
-          <defs>
-            <marker id="arrBF" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-              <path d="M0,0 L10,5 L0,10 z" fill="currentColor"></path>
-            </marker>
-          </defs>
-          <g fill="none" stroke="currentColor" stroke-width="1.3">
-            <rect x="40" y="20" width="340" height="56" rx="8"></rect>
-            <rect x="40" y="116" width="340" height="56" rx="8"></rect>
-            <rect x="40" y="212" width="340" height="56" rx="8"></rect>
-            <rect x="40" y="308" width="340" height="56" rx="8" fill="var(--accent)" fill-opacity="0.12" stroke="var(--accent)"></rect>
-            <rect x="40" y="404" width="340" height="56" rx="8"></rect>
-          </g>
-          <g font-family="IBM Plex Sans, sans-serif" font-size="14" fill="currentColor" text-anchor="middle">
-            <text x="210" y="53">Llega un proceso nuevo, tamaño S</text>
-            <text x="210" y="149">Toma el siguiente hueco libre no revisado</text>
-            <text x="210" y="238">¿Es ≥ S y más chico que el</text>
-            <text x="210" y="256">mejor candidato guardado hasta ahora?</text>
-            <text x="210" y="331">Sí → lo guarda como nuevo mejor candidato</text>
-            <text x="210" y="349" font-size="12" fill="var(--ink-soft)">(el más ajustado visto hasta el momento)</text>
-            <text x="210" y="427">Asigna el proceso al mejor candidato</text>
-            <text x="210" y="445" font-size="12" fill="var(--ink-soft)">y divide el hueco: ocupado + fragmento libre</text>
-          </g>
-          <g stroke="currentColor" stroke-width="1.3" fill="none" marker-end="url(#arrBF)">
-            <line x1="210" y1="76" x2="210" y2="112"></line>
-            <line x1="210" y1="172" x2="210" y2="208"></line>
-            <line x1="210" y1="268" x2="210" y2="304"></line>
-            <line x1="210" y1="364" x2="210" y2="400"></line>
-          </g>
-          <g stroke="currentColor" stroke-width="1.3" fill="none" marker-end="url(#arrBF)">
-            <path d="M380,240 L430,240 L430,144 L384,144"></path>
-          </g>
-          <text x="436" y="196" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--ink-soft)" transform="rotate(-90 436 196)" text-anchor="middle">repite con el siguiente hueco</text>
-        </svg>
-        <figcaption>Fig. 1 — El algoritmo no se queda con el primer hueco que alcanza (eso sería First&#8209;Fit): sigue comparando hasta agotar la lista, y recién ahí asigna el más ajustado.</figcaption>
-      </figure>
-
-      <p>El resultado de "dividir el hueco" es clave: la porción que ocupa el proceso queda reservada, y lo que sobra se convierte en un hueco libre nuevo — normalmente muy pequeño, porque Best&#8209;Fit lo eligió justamente por ser el que menos sobrante dejaba.</p>
-    </section>
-
-    <section id="ejemplo">
-      <span class="tag">0x04 — Ejemplo práctico</span>
-      <h2>Un caso resuelto a mano</h2>
-      <p>Supongamos que la memoria tiene cinco huecos libres y llegan tres procesos, en este orden:</p>
-
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Huecos libres iniciales</th><th>Tamaño</th><th>Procesos a ubicar</th><th>Tamaño</th></tr></thead>
-          <tbody>
-            <tr><td>H1</td><td>100 KB</td><td>P1</td><td>212 KB</td></tr>
-            <tr><td>H2</td><td>500 KB</td><td>P2</td><td>417 KB</td></tr>
-            <tr><td>H3</td><td>200 KB</td><td>P3</td><td>112 KB</td></tr>
-            <tr><td>H4</td><td>300 KB</td><td></td><td></td></tr>
-            <tr><td>H5</td><td>600 KB</td><td></td><td></td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <h3>Razonamiento de Best&#8209;Fit</h3>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Proceso</th><th>Huecos que alcanzan</th><th>Elegido</th><th>Motivo</th><th>Fragmento resultante</th></tr></thead>
-          <tbody>
-            <tr><td>P1 · 212 KB</td><td>H2(500), H4(300), H5(600)</td><td>H4 (300 KB)</td><td class="note">es el más chico de los tres que alcanzan</td><td>88 KB</td></tr>
-            <tr><td>P2 · 417 KB</td><td>H2(500), H5(600)</td><td>H2 (500 KB)</td><td class="note">entre los dos que alcanzan, 500 es el menor</td><td>83 KB</td></tr>
-            <tr><td>P3 · 112 KB</td><td>H3(200), H5(600)</td><td>H3 (200 KB)</td><td class="note">200 ajusta mucho mejor que dejar el de 600 intacto</td><td>88 KB</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <figure>
-        <svg viewBox="0 0 930 300" role="img" aria-label="Comparación antes y después de aplicar Best-Fit sobre cinco huecos de memoria: los huecos H2, H3 y H4 quedan parcialmente ocupados dejando fragmentos pequeños, mientras H1 y H5 permanecen libres.">
-          <text x="20" y="24" font-family="IBM Plex Mono, monospace" font-size="12.5" fill="var(--ink-soft)">ANTES — huecos libres</text>
-          <g stroke="var(--line)" stroke-width="1">
-            <rect x="20" y="40" width="50" height="50" fill="var(--free-bg)"></rect>
-            <rect x="80" y="40" width="250" height="50" fill="var(--free-bg)"></rect>
-            <rect x="340" y="40" width="100" height="50" fill="var(--free-bg)"></rect>
-            <rect x="450" y="40" width="150" height="50" fill="var(--free-bg)"></rect>
-            <rect x="610" y="40" width="300" height="50" fill="var(--free-bg)"></rect>
-          </g>
-          <g font-family="IBM Plex Mono, monospace" font-size="12" fill="var(--free)" text-anchor="middle">
-            <text x="45" y="69">100</text>
-            <text x="205" y="69">500</text>
-            <text x="390" y="69">200</text>
-            <text x="525" y="69">300</text>
-            <text x="760" y="69">600</text>
-          </g>
-
-          <text x="20" y="160" font-family="IBM Plex Mono, monospace" font-size="12.5" fill="var(--ink-soft)">DESPUÉS — tras asignar P1, P2 y P3 con Best-Fit</text>
-          <g stroke="var(--line)" stroke-width="1">
-            <rect x="20" y="176" width="50" height="50" fill="var(--free-bg)"></rect>
-            <rect x="80" y="176" width="209" height="50" fill="var(--accent)" fill-opacity="0.75"></rect>
-            <rect x="289" y="176" width="41" height="50" fill="var(--fragment-bg)"></rect>
-            <rect x="340" y="176" width="56" height="50" fill="var(--accent)" fill-opacity="0.75"></rect>
-            <rect x="396" y="176" width="44" height="50" fill="var(--fragment-bg)"></rect>
-            <rect x="450" y="176" width="106" height="50" fill="var(--accent)" fill-opacity="0.75"></rect>
-            <rect x="556" y="176" width="44" height="50" fill="var(--fragment-bg)"></rect>
-            <rect x="610" y="176" width="300" height="50" fill="var(--free-bg)"></rect>
-          </g>
-          <g font-family="IBM Plex Mono, monospace" font-size="11.5" text-anchor="middle">
-            <text x="45" y="205" fill="var(--free)">100</text>
-            <text x="184" y="205" fill="#fff">P2</text>
-            <text x="309" y="205" fill="var(--fragment)">83</text>
-            <text x="368" y="205" fill="#fff">P1</text>
-            <text x="418" y="205" fill="var(--fragment)">88</text>
-            <text x="503" y="205" fill="#fff">P3</text>
-            <text x="578" y="205" fill="var(--fragment)">88</text>
-            <text x="760" y="205" fill="var(--free)">600</text>
-          </g>
-
-          <g font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--ink-faint)" text-anchor="middle">
-            <text x="45" y="240">H1</text><text x="184" y="240">H2</text><text x="390" y="240">H4</text><text x="760" y="240">H5</text><text x="418" y="255">H3</text>
-          </g>
-        </svg>
-        <figcaption>Fig. 2 — Los tres huecos elegidos (H2, H3, H4) quedan con fragmentos de 41–88 KB, demasiado chicos para casi cualquier proceso futuro. H1 (100 KB) y H5 (600 KB) siguen intactos porque nunca fueron el "mejor ajuste" para ninguno de los tres procesos.</figcaption>
-      </figure>
-
-      <p>Nótese algo importante: <b>ningún proceso terminó en H5</b>, el hueco más grande. Ese es justamente el objetivo de Best&#8209;Fit — reservar los huecos grandes para cuando realmente se necesiten — pero también su costo: en vez de un solo espacio desperdiciado quedan tres fragmentos chicos repartidos por la memoria.</p>
-    </section>
-
-    <section id="ventajas">
-      <span class="tag">0x05 — Ventajas y desventajas</span>
-      <h2>El balance del "mejor ajuste"</h2>
-      <div class="grid-2">
-        <div class="card">
-          <h3 style="margin-top:0; color:var(--good)">Ventajas</h3>
-          <ul>
-            <li>Aprovecha mejor cada partición individual: el desperdicio por asignación es, en teoría, el mínimo posible.</li>
-            <li>Conserva los huecos grandes disponibles para procesos grandes que lleguen después.</li>
-            <li>Buen candidato cuando la memoria es escasa y cada KB cuenta (por ejemplo, sistemas con poca RAM).</li>
-          </ul>
-        </div>
-        <div class="card">
-          <h3 style="margin-top:0; color:var(--fragment)">Desventajas</h3>
-          <ul>
-            <li>Más lento que First&#8209;Fit: hay que recorrer toda la lista de huecos en cada asignación.</li>
-            <li>Genera muchos fragmentos pequeños (fragmentación externa) que rara vez vuelven a usarse.</li>
-            <li>Con el tiempo, esos fragmentos acumulados pueden dejar memoria "libre" en el papel pero inutilizable en la práctica.</li>
-          </ul>
-        </div>
-      </div>
-
-      <h3>¿Y frente a Worst&#8209;Fit?</h3>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Algoritmo</th><th>Criterio</th><th>Velocidad</th><th>Fragmentos que deja</th></tr></thead>
-          <tbody>
-            <tr><td>First&#8209;Fit</td><td class="note">primer hueco que alcanza</td><td>Rápido</td><td class="note">variable, según el orden de la lista</td></tr>
-            <tr><td>Best&#8209;Fit</td><td class="note">hueco más chico que alcanza</td><td>Lento</td><td class="note">muchos, pero muy pequeños</td></tr>
-            <tr><td>Worst&#8209;Fit</td><td class="note">hueco más grande disponible</td><td>Lento</td><td class="note">pocos, pero busca que sean grandes y reutilizables</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <section id="aplicaciones">
-      <span class="tag">0x06 — Aplicaciones prácticas</span>
-      <h2>¿Dónde se usa esta lógica en la práctica?</h2>
-      <p>La asignación contigua "pura" quedó en segundo plano en los sistemas operativos de escritorio modernos, que en general resuelven la gestión de memoria con paginación. Aun así, la idea de fondo de Best&#8209;Fit — buscar el espacio libre que menos desperdicia — sigue apareciendo en varios lugares:</p>
-      <ul>
-        <li><b>Gestores de memoria dinámica de bajo nivel</b> (como las implementaciones de <code>malloc</code>/<code>free</code> en C): varios asignadores exploran variantes de "mejor ajuste" para reducir el desperdicio dentro de un heap.</li>
-        <li><b>Sistemas embebidos y firmware</b>, donde la RAM disponible es muy limitada y cada byte desperdiciado importa.</li>
-        <li><b>Asignación de espacio en disco</b> en algunos sistemas de archivos, que enfrentan el mismo problema (bloques libres de distinto tamaño) al reservar espacio contiguo para un archivo nuevo.</li>
-      </ul>
-    </section>
-
-    <section id="video">
-      <span class="tag">0x07 — Video</span>
-      <h2>Video explicativo</h2>
-      <div class="video-card">
-        <div class="play" aria-hidden="true">▶</div>
-        <div>
-          <a class="watch" href="https://www.youtube.com/watch?v=9FBFr0_1sG8" target="_blank" rel="noopener">Best&#8209;Fit — Algoritmo del mejor ajuste (YouTube, en español)</a>
-          <div class="video-note">Referencia externa usada para repasar el tema. <b>Pendiente:</b> reemplazar/complementar con el video corto grabado por el grupo para la entrega final.</div>
-        </div>
-      </div>
-    </section>
-
-    <section id="cuestionario">
-      <span class="tag">0x08 — Autoevaluación</span>
-      <h2>¿Cuánto conocemos de Sistemas Operativos?</h2>
-      <p class="lede">Elegí una opción en cada pregunta para ver si es correcta.</p>
-
-      <div class="quiz-card">
-        <p class="q">1. ¿Qué hace exactamente el algoritmo Best&#8209;Fit al recibir un proceso nuevo?</p>
-        <div class="opts">
-          <button class="opt" data-correct="false">
-            <span class="letter">A</span><span>Asigna el primer hueco libre que encuentra, sin comparar con los demás.</span>
-          </button>
-          <button class="opt" data-correct="false">
-            <span class="letter">B</span><span>Asigna siempre el hueco libre de mayor tamaño disponible.</span>
-          </button>
-          <button class="opt" data-correct="true">
-            <span class="letter">C</span><span>Recorre todos los huecos libres y asigna el más pequeño que todavía alcance para el proceso.</span>
-          </button>
-          <button class="opt" data-correct="false">
-            <span class="letter">D</span><span>Elige un hueco libre al azar entre los disponibles.</span>
-          </button>
-        </div>
-        <div class="explain">Best&#8209;Fit compara todos los huecos ≥ al tamaño del proceso y se queda con el más chico de ellos — no con el primero (First&#8209;Fit) ni con el más grande (Worst&#8209;Fit).</div>
-      </div>
-
-      <div class="quiz-card">
-        <p class="q">2. ¿Cuál es la principal desventaja de Best&#8209;Fit frente a First&#8209;Fit?</p>
-        <div class="opts">
-          <button class="opt" data-correct="false"><span class="letter">A</span><span>Produce fragmentación interna dentro de cada partición asignada.</span></button>
-          <button class="opt" data-correct="true"><span class="letter">B</span><span>Es más lento, porque necesita revisar todos los huecos disponibles antes de decidir.</span></button>
-          <button class="opt" data-correct="false"><span class="letter">C</span><span>No puede aplicarse en esquemas de memoria con particiones variables.</span></button>
-          <button class="opt" data-correct="false"><span class="letter">D</span><span>Nunca logra un aprovechamiento aceptable de la memoria.</span></button>
-        </div>
-        <div class="explain">La fragmentación interna es propia de las particiones fijas, no de este esquema. El costo real de Best&#8209;Fit es de tiempo: recorrer toda la lista de huecos en cada asignación.</div>
-      </div>
-
-      <div class="quiz-card">
-        <p class="q">3. En el ejemplo de la Fig. 2, el proceso P1 (212 KB) se asignó al hueco de 300 KB y no al de 500 o 600 KB. ¿Por qué?</p>
-        <div class="opts">
-          <button class="opt" data-correct="false"><span class="letter">A</span><span>Porque era el primer hueco de la lista que revisó el sistema.</span></button>
-          <button class="opt" data-correct="false"><span class="letter">B</span><span>Porque era el hueco de mayor tamaño entre los disponibles.</span></button>
-          <button class="opt" data-correct="true"><span class="letter">C</span><span>Porque, entre todos los que alcanzaban, era el más chico — el que menos espacio libre dejaba sobrando.</span></button>
-          <button class="opt" data-correct="false"><span class="letter">D</span><span>Porque el sistema operativo lo eligió sin ningún criterio particular.</span></button>
-        </div>
-        <div class="explain">Exacto: de los tres huecos que alcanzaban (300, 500 y 600), Best&#8209;Fit se queda con el de 300 KB por ser el más ajustado al tamaño del proceso.</div>
-      </div>
-
-      <div class="quiz-card">
-        <p class="q">4. Después de aplicar Best&#8209;Fit en ese mismo ejemplo, ¿qué consecuencia se observa en la memoria?</p>
-        <div class="opts">
-          <button class="opt" data-correct="false"><span class="letter">A</span><span>Toda la memoria queda perfectamente aprovechada, sin ningún espacio libre.</span></button>
-          <button class="opt" data-correct="true"><span class="letter">B</span><span>Quedan varios fragmentos libres muy pequeños que probablemente no le sirvan a futuros procesos.</span></button>
-          <button class="opt" data-correct="false"><span class="letter">C</span><span>La memoria se reorganiza sola para eliminar los espacios libres sobrantes.</span></button>
-          <button class="opt" data-correct="false"><span class="letter">D</span><span>Se elimina por completo la posibilidad de fragmentación externa.</span></button>
-        </div>
-        <div class="explain">Quedan tres fragmentos (83, 88 y 88 KB): es justamente el ejemplo de fragmentación externa que Best&#8209;Fit tiende a producir por lo ajustado de sus asignaciones.</div>
-      </div>
-    </section>
-
-    <section id="fuentes" class="sources">
-      <span class="tag">0x09 — Fuentes</span>
-      <h2>Fuentes bibliográficas y digitales consultadas</h2>
+  <div class="shell layout">
+    <nav class="toc" aria-label="Navegación de secciones">
       <ol>
-        <li><span class="n">1</span><a href="https://labvirtual.webs.upv.es/Best_Fit.htm" target="_blank" rel="noopener">Laboratorio Virtual UPV — "Asignación Contigua de Memoria con Particiones Variables: Mejor Ajuste"</a><span class="src-meta">labvirtual.webs.upv.es</span></li>
-        <li><span class="n">2</span><a href="https://www.geeksforgeeks.org/operating-systems/partition-allocation-methods-in-memory-management/" target="_blank" rel="noopener">GeeksforGeeks — "Partition Allocation Methods in Memory Management"</a><span class="src-meta">geeksforgeeks.org</span></li>
-        <li><span class="n">3</span><a href="https://phoenixnap.mx/glosario/asignaci%C3%B3n-de-mejor-ajuste" target="_blank" rel="noopener">phoenixNAP — "¿Qué es la asignación de mejor ajuste?"</a><span class="src-meta">phoenixnap.mx</span></li>
-        <li><span class="n">4</span><a href="https://www.fceia.unr.edu.ar/~diegob/so/presenta/09-Memoria.pdf" target="_blank" rel="noopener">FCEIA — UNR — "Sistemas Operativos: Gestión de Memoria" (material de cátedra)</a><span class="src-meta">fceia.unr.edu.ar</span></li>
-        <li><span class="n">5</span><a href="https://www.youtube.com/watch?v=9FBFr0_1sG8" target="_blank" rel="noopener">"Best Fit | Algoritmo del mejor ajuste | Asignación de memoria" — YouTube</a><span class="src-meta">youtube.com</span></li>
+        <li><a href="#introduccion" class="tc"><span class="tag addr">0x00</span> Introducción</a></li>
+        <li><a href="#concepto" class="tc"><span class="tag addr">0x01</span> Concepto</a></li>
+        <li><a href="#caracteristicas" class="tc"><span class="tag addr">0x02</span> Características</a></li>
+        <li><a href="#funcionamiento" class="tc"><span class="tag addr">0x03</span> Funcionamiento</a></li>
+        <li><a href="#ejemplo" class="tc"><span class="tag addr">0x04</span> Ejemplo práctico</a></li>
+        <li><a href="#ventajas" class="tc"><span class="tag addr">0x05</span> Ventajas / Desventajas</a></li>
+        <li><a href="#aplicaciones" class="tc"><span class="tag addr">0x06</span> Aplicaciones</a></li>
+        <li><a href="#video" class="tc"><span class="tag addr">0x07</span> Video</a></li>
+        <li><a href="#cuestionario" class="tc"><span class="tag addr">0x08</span> Cuestionario</a></li>
+        <li><a href="#fuentes" class="tc"><span class="tag addr">0x09</span> Fuentes</a></li>
+        <li><a href="#equipo" class="tc"><span class="tag addr">0x0A</span> Equipo</a></li>
       </ol>
-    </section>
+    </nav>
 
-    <section id="equipo">
-      <span class="tag">0x0A — Equipo</span>
-      <h2>Grupo 12</h2>
-      <p>Trabajo elaborado por tres integrantes, con reparto de tareas equilibrado entre investigación, desarrollo de la producción digital y elaboración de la autoevaluación.</p>
-      <div class="team">
-        <div class="card"><div class="role">Integrante</div><div class="name">Enzo</div><div class="task">Concepto, características y funcionamiento del algoritmo; redacción del ejemplo práctico.</div></div>
-        <div class="card"><div class="role">Integrante</div><div class="name">Fabricio</div><div class="task">Investigación y fuentes; coordinación general; desarrollo técnico del blog.</div></div>
-        <div class="card"><div class="role">Integrante</div><div class="name">Lautaro</div><div class="task">Ventajas/desventajas, aplicaciones prácticas, video y sección de autoevaluación.</div></div>
-      </div>
-    </section>
+    <main>
 
-  </main>
-</div>
+      <section id="introduccion">
+        <span class="tag">0x00 — Introducción</span>
+        <h2>Por qué importa dónde se guarda cada proceso</h2>
+        <p class="lede">Cuando un programa se ejecuta, el sistema operativo tiene que encontrarle un lugar en la memoria
+          principal (RAM) para cargarlo. En los esquemas de <b>asignación contigua con particiones variables</b>, la
+          memoria libre queda repartida en "huecos" de distintos tamaños, y cada vez que llega un proceso nuevo hay que
+          decidir en cuál de esos huecos ubicarlo.</p>
+        <p>Esa decisión no es trivial: elegir mal significa dejar espacios sueltos, cada vez más chicos e inútiles,
+          hasta que el sistema tiene memoria libre de sobra pero ninguna porción lo bastante grande y contigua para el
+          próximo proceso. A ese problema se lo conoce como <b>fragmentación externa</b>, y es la razón por la que
+          existen distintas estrategias de asignación — entre ellas, First&#8209;Fit, Worst&#8209;Fit y la que
+          trabajamos en este grupo: <b>Best&#8209;Fit</b>.</p>
+      </section>
 
-<footer>
-  <div class="shell">
-    <span>Sistemas Operativos — Actividad de Evaluación 1 — Grupo 12</span>
-    <span>Universidad de la Cuenca del Plata — Sede Corrientes</span>
-    <span>Ingeniería en Sistemas de Información</span>
+      <section id="concepto">
+        <span class="tag">0x01 — Concepto</span>
+        <h2>¿Qué es Best&#8209;Fit?</h2>
+        <p>Best&#8209;Fit (mejor ajuste) es un algoritmo de asignación de memoria que, ante un proceso nuevo, recorre
+          <b>toda</b> la lista de huecos libres y le asigna el <b>más chico de los que todavía alcanzan</b> para
+          contenerlo. La idea es simple: si el proceso mide 212&nbsp;KB, no tiene sentido meterlo en un hueco de
+          600&nbsp;KB si hay uno de 300&nbsp;KB que también le entra — conviene guardar el hueco grande para un proceso
+          que después lo necesite.</p>
+        <p>En otras palabras, busca minimizar el espacio que sobra después de cada asignación, dejando el remanente más
+          pequeño posible en cada partición usada.</p>
+      </section>
+
+      <section id="caracteristicas">
+        <span class="tag">0x02 — Características</span>
+        <h2>Características principales</h2>
+        <ul>
+          <li><b>Búsqueda exhaustiva:</b> a diferencia de First&#8209;Fit, no se detiene en el primer hueco que sirve —
+            revisa todos los huecos disponibles antes de decidir.</li>
+          <li><b>Criterio de selección:</b> de todos los huecos con tamaño ≥ al proceso, elige el de menor tamaño.</li>
+          <li><b>Minimiza el remanente por asignación:</b> el espacio que queda libre después de ubicar el proceso es,
+            por definición, el menor posible en esa asignación puntual.</li>
+          <li><b>Costo computacional más alto:</b> si la lista de huecos no está ordenada por tamaño, cada asignación
+            implica recorrerla entera — más lento que First&#8209;Fit a medida que crece la cantidad de huecos.</li>
+          <li><b>Tiende a generar fragmentos muy chicos:</b> justamente por ajustar tanto, suele dejar sobras diminutas
+            que ya no le sirven a casi ningún proceso futuro.</li>
+        </ul>
+      </section>
+
+      <section id="funcionamiento">
+        <span class="tag">0x03 — Funcionamiento</span>
+        <h2>Cómo decide, paso a paso</h2>
+        <p>Para cada proceso nuevo que llega, el sistema operativo repite esta secuencia sobre la lista de huecos
+          libres:</p>
+
+        <figure>
+          <svg viewBox="0 0 560 500" role="img"
+            aria-label="Diagrama de flujo del algoritmo Best-Fit: recorre todos los huecos libres, se queda con el más chico que alcance, lo asigna y divide el hueco en parte ocupada y fragmento libre.">
+            <defs>
+              <marker id="arrBF" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7"
+                orient="auto-start-reverse">
+                <path d="M0,0 L10,5 L0,10 z" fill="currentColor"></path>
+              </marker>
+            </defs>
+            <g fill="none" stroke="currentColor" stroke-width="1.3">
+              <rect x="40" y="20" width="340" height="56" rx="2"></rect>
+              <rect x="40" y="116" width="340" height="56" rx="2"></rect>
+              <rect x="40" y="212" width="340" height="56" rx="2"></rect>
+              <rect x="40" y="308" width="340" height="56" rx="2" fill="var(--accent)" fill-opacity="0.12"
+                stroke="var(--accent)"></rect>
+              <rect x="40" y="404" width="340" height="56" rx="2"></rect>
+            </g>
+            <g font-family="Source Sans 3, sans-serif" font-size="14" fill="currentColor" text-anchor="middle">
+              <text x="210" y="53">Llega un proceso nuevo, tamaño S</text>
+              <text x="210" y="149">Toma el siguiente hueco libre no revisado</text>
+              <text x="210" y="238">¿Es ≥ S y más chico que el</text>
+              <text x="210" y="256">mejor candidato guardado hasta ahora?</text>
+              <text x="210" y="331">Sí → lo guarda como nuevo mejor candidato</text>
+              <text x="210" y="349" font-size="12" fill="var(--ink-soft)">(el más ajustado visto hasta el
+                momento)</text>
+              <text x="210" y="427">Asigna el proceso al mejor candidato</text>
+              <text x="210" y="445" font-size="12" fill="var(--ink-soft)">y divide el hueco: ocupado + fragmento
+                libre</text>
+            </g>
+            <g stroke="currentColor" stroke-width="1.3" fill="none" marker-end="url(#arrBF)">
+              <line x1="210" y1="76" x2="210" y2="112"></line>
+              <line x1="210" y1="172" x2="210" y2="208"></line>
+              <line x1="210" y1="268" x2="210" y2="304"></line>
+              <line x1="210" y1="364" x2="210" y2="400"></line>
+            </g>
+            <g stroke="currentColor" stroke-width="1.3" fill="none" marker-end="url(#arrBF)">
+              <path d="M380,240 L430,240 L430,144 L384,144"></path>
+            </g>
+            <text x="436" y="196" font-family="Source Sans 3, sans-serif" font-size="11.5" fill="var(--ink-soft)"
+              transform="rotate(-90 436 196)" text-anchor="middle">repite con el siguiente hueco</text>
+          </svg>
+          <figcaption>Fig. 1 — El algoritmo no se queda con el primer hueco que alcanza (eso sería First&#8209;Fit):
+            sigue comparando hasta agotar la lista, y recién ahí asigna el más ajustado.</figcaption>
+        </figure>
+
+        <p>El resultado de "dividir el hueco" es clave: la porción que ocupa el proceso queda reservada, y lo que sobra
+          se convierte en un hueco libre nuevo — normalmente muy pequeño, porque Best&#8209;Fit lo eligió justamente por
+          ser el que menos sobrante dejaba.</p>
+      </section>
+
+      <section id="ejemplo">
+        <span class="tag">0x04 — Ejemplo práctico</span>
+        <h2>Un caso resuelto a mano</h2>
+        <p>Supongamos que la memoria tiene cinco huecos libres y llegan tres procesos, en este orden:</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Huecos libres iniciales</th>
+                <th>Tamaño</th>
+                <th>Procesos a ubicar</th>
+                <th>Tamaño</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>H1</td>
+                <td>100 KB</td>
+                <td>P1</td>
+                <td>212 KB</td>
+              </tr>
+              <tr>
+                <td>H2</td>
+                <td>500 KB</td>
+                <td>P2</td>
+                <td>417 KB</td>
+              </tr>
+              <tr>
+                <td>H3</td>
+                <td>200 KB</td>
+                <td>P3</td>
+                <td>112 KB</td>
+              </tr>
+              <tr>
+                <td>H4</td>
+                <td>300 KB</td>
+                <td></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>H5</td>
+                <td>600 KB</td>
+                <td></td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Razonamiento de Best&#8209;Fit</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Proceso</th>
+                <th>Huecos que alcanzan</th>
+                <th>Elegido</th>
+                <th>Motivo</th>
+                <th>Fragmento resultante</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>P1 · 212 KB</td>
+                <td>H2(500), H4(300), H5(600)</td>
+                <td>H4 (300 KB)</td>
+                <td class="note">es el más chico de los tres que alcanzan</td>
+                <td>88 KB</td>
+              </tr>
+              <tr>
+                <td>P2 · 417 KB</td>
+                <td>H2(500), H5(600)</td>
+                <td>H2 (500 KB)</td>
+                <td class="note">entre los dos que alcanzan, 500 es el menor</td>
+                <td>83 KB</td>
+              </tr>
+              <tr>
+                <td>P3 · 112 KB</td>
+                <td>H3(200), H5(600)</td>
+                <td>H3 (200 KB)</td>
+                <td class="note">200 ajusta mucho mejor que dejar el de 600 intacto</td>
+                <td>88 KB</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <figure>
+          <svg viewBox="0 0 930 300" role="img"
+            aria-label="Comparación antes y después de aplicar Best-Fit sobre cinco huecos de memoria: los huecos H2, H3 y H4 quedan parcialmente ocupados dejando fragmentos pequeños, mientras H1 y H5 permanecen libres.">
+            <text x="20" y="24" font-family="Source Sans 3, sans-serif" font-size="12.5" fill="var(--ink-soft)">ANTES —
+              huecos libres</text>
+            <g stroke="var(--line)" stroke-width="1">
+              <rect x="20" y="40" width="50" height="50" fill="var(--free-bg)"></rect>
+              <rect x="80" y="40" width="250" height="50" fill="var(--free-bg)"></rect>
+              <rect x="340" y="40" width="100" height="50" fill="var(--free-bg)"></rect>
+              <rect x="450" y="40" width="150" height="50" fill="var(--free-bg)"></rect>
+              <rect x="610" y="40" width="300" height="50" fill="var(--free-bg)"></rect>
+            </g>
+            <g font-family="Source Sans 3, sans-serif" font-size="12" fill="var(--free)" text-anchor="middle">
+              <text x="45" y="69">100</text>
+              <text x="205" y="69">500</text>
+              <text x="390" y="69">200</text>
+              <text x="525" y="69">300</text>
+              <text x="760" y="69">600</text>
+            </g>
+
+            <text x="20" y="160" font-family="Source Sans 3, sans-serif" font-size="12.5" fill="var(--ink-soft)">DESPUÉS
+              — tras asignar P1, P2 y P3 con Best-Fit</text>
+            <g stroke="var(--line)" stroke-width="1">
+              <rect x="20" y="176" width="50" height="50" fill="var(--free-bg)"></rect>
+              <rect x="80" y="176" width="209" height="50" fill="var(--accent)" fill-opacity="0.75"></rect>
+              <rect x="289" y="176" width="41" height="50" fill="var(--fragment-bg)"></rect>
+              <rect x="340" y="176" width="56" height="50" fill="var(--accent)" fill-opacity="0.75"></rect>
+              <rect x="396" y="176" width="44" height="50" fill="var(--fragment-bg)"></rect>
+              <rect x="450" y="176" width="106" height="50" fill="var(--accent)" fill-opacity="0.75"></rect>
+              <rect x="556" y="176" width="44" height="50" fill="var(--fragment-bg)"></rect>
+              <rect x="610" y="176" width="300" height="50" fill="var(--free-bg)"></rect>
+            </g>
+            <g font-family="Source Sans 3, sans-serif" font-size="11.5" text-anchor="middle">
+              <text x="45" y="205" fill="var(--free)">100</text>
+              <text x="184" y="205" fill="#fff">P2</text>
+              <text x="309" y="205" fill="var(--fragment)">83</text>
+              <text x="368" y="205" fill="#fff">P1</text>
+              <text x="418" y="205" fill="var(--fragment)">88</text>
+              <text x="503" y="205" fill="#fff">P3</text>
+              <text x="578" y="205" fill="var(--fragment)">88</text>
+              <text x="760" y="205" fill="var(--free)">600</text>
+            </g>
+
+            <g font-family="Source Sans 3, sans-serif" font-size="11" fill="var(--ink-faint)" text-anchor="middle">
+              <text x="45" y="240">H1</text><text x="184" y="240">H2</text><text x="390" y="240">H4</text><text x="760"
+                y="240">H5</text><text x="418" y="255">H3</text>
+            </g>
+          </svg>
+          <figcaption>Fig. 2 — Los tres huecos elegidos (H2, H3, H4) quedan con fragmentos de 41–88 KB, demasiado chicos
+            para casi cualquier proceso futuro. H1 (100 KB) y H5 (600 KB) siguen intactos porque nunca fueron el "mejor
+            ajuste" para ninguno de los tres procesos.</figcaption>
+        </figure>
+
+        <p>Nótese algo importante: <b>ningún proceso terminó en H5</b>, el hueco más grande. Ese es justamente el
+          objetivo de Best&#8209;Fit — reservar los huecos grandes para cuando realmente se necesiten — pero también su
+          costo: en vez de un solo espacio desperdiciado quedan tres fragmentos chicos repartidos por la memoria.</p>
+      </section>
+
+      <section id="ventajas">
+        <span class="tag">0x05 — Ventajas y desventajas</span>
+        <h2>El balance del "mejor ajuste"</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3 style="margin-top:0; color:var(--good)">Ventajas</h3>
+            <ul>
+              <li>Aprovecha mejor cada partición individual: el desperdicio por asignación es, en teoría, el mínimo
+                posible.</li>
+              <li>Conserva los huecos grandes disponibles para procesos grandes que lleguen después.</li>
+              <li>Buen candidato cuando la memoria es escasa y cada KB cuenta (por ejemplo, sistemas con poca RAM).</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3 style="margin-top:0; color:var(--fragment)">Desventajas</h3>
+            <ul>
+              <li>Más lento que First&#8209;Fit: hay que recorrer toda la lista de huecos en cada asignación.</li>
+              <li>Genera muchos fragmentos pequeños (fragmentación externa) que rara vez vuelven a usarse.</li>
+              <li>Con el tiempo, esos fragmentos acumulados pueden dejar memoria "libre" en el papel pero inutilizable
+                en la práctica.</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>¿Y frente a Worst&#8209;Fit?</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Algoritmo</th>
+                <th>Criterio</th>
+                <th>Velocidad</th>
+                <th>Fragmentos que deja</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>First&#8209;Fit</td>
+                <td class="note">primer hueco que alcanza</td>
+                <td>Rápido</td>
+                <td class="note">variable, según el orden de la lista</td>
+              </tr>
+              <tr>
+                <td>Best&#8209;Fit</td>
+                <td class="note">hueco más chico que alcanza</td>
+                <td>Lento</td>
+                <td class="note">muchos, pero muy pequeños</td>
+              </tr>
+              <tr>
+                <td>Worst&#8209;Fit</td>
+                <td class="note">hueco más grande disponible</td>
+                <td>Lento</td>
+                <td class="note">pocos, pero busca que sean grandes y reutilizables</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="aplicaciones">
+        <span class="tag">0x06 — Aplicaciones prácticas</span>
+        <h2>¿Dónde se usa esta lógica en la práctica?</h2>
+        <p>La asignación contigua "pura" quedó en segundo plano en los sistemas operativos de escritorio modernos, que
+          en general resuelven la gestión de memoria con paginación. Aun así, la idea de fondo de Best&#8209;Fit —
+          buscar el espacio libre que menos desperdicia — sigue apareciendo en varios lugares:</p>
+        <ul>
+          <li><b>Gestores de memoria dinámica de bajo nivel</b> (como las implementaciones de
+            <code>malloc</code>/<code>free</code> en C): varios asignadores exploran variantes de "mejor ajuste" para
+            reducir el desperdicio dentro de un heap.</li>
+          <li><b>Sistemas embebidos y firmware</b>, donde la RAM disponible es muy limitada y cada byte desperdiciado
+            importa.</li>
+          <li><b>Asignación de espacio en disco</b> en algunos sistemas de archivos, que enfrentan el mismo problema
+            (bloques libres de distinto tamaño) al reservar espacio contiguo para un archivo nuevo.</li>
+        </ul>
+      </section>
+
+      <section id="video">
+        <span class="tag">0x07 — Video</span>
+        <h2>Video explicativo</h2>
+        <div class="video-card">
+          <div class="play" aria-hidden="true">▶</div>
+          <div>
+            <a class="watch" href="https://www.youtube.com/watch?v=9FBFr0_1sG8" target="_blank"
+              rel="noopener">Best&#8209;Fit — Algoritmo del mejor ajuste (YouTube, en español)</a>
+            <div class="video-note">Referencia externa usada para repasar el tema. <b>Pendiente:</b>
+              reemplazar/complementar con el video corto grabado por el grupo para la entrega final.</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="cuestionario">
+        <span class="tag">0x08 — Autoevaluación</span>
+        <h2>¿Cuánto conocemos de Sistemas Operativos?</h2>
+        <p class="lede">Elegí una opción en cada pregunta para ver si es correcta.</p>
+
+        <div class="quiz-card">
+          <p class="q">1. ¿Qué hace exactamente el algoritmo Best&#8209;Fit al recibir un proceso nuevo?</p>
+          <div class="opts">
+            <button class="opt" data-correct="false">
+              <span class="letter">A</span><span>Asigna el primer hueco libre que encuentra, sin comparar con los
+                demás.</span>
+            </button>
+            <button class="opt" data-correct="false">
+              <span class="letter">B</span><span>Asigna siempre el hueco libre de mayor tamaño disponible.</span>
+            </button>
+            <button class="opt" data-correct="true">
+              <span class="letter">C</span><span>Recorre todos los huecos libres y asigna el más pequeño que todavía
+                alcance para el proceso.</span>
+            </button>
+            <button class="opt" data-correct="false">
+              <span class="letter">D</span><span>Elige un hueco libre al azar entre los disponibles.</span>
+            </button>
+          </div>
+          <div class="explain">Best&#8209;Fit compara todos los huecos ≥ al tamaño del proceso y se queda con el más
+            chico de ellos — no con el primero (First&#8209;Fit) ni con el más grande (Worst&#8209;Fit).</div>
+        </div>
+
+        <div class="quiz-card">
+          <p class="q">2. ¿Cuál es la principal desventaja de Best&#8209;Fit frente a First&#8209;Fit?</p>
+          <div class="opts">
+            <button class="opt" data-correct="false"><span class="letter">A</span><span>Produce fragmentación interna
+                dentro de cada partición asignada.</span></button>
+            <button class="opt" data-correct="true"><span class="letter">B</span><span>Es más lento, porque necesita
+                revisar todos los huecos disponibles antes de decidir.</span></button>
+            <button class="opt" data-correct="false"><span class="letter">C</span><span>No puede aplicarse en esquemas
+                de memoria con particiones variables.</span></button>
+            <button class="opt" data-correct="false"><span class="letter">D</span><span>Nunca logra un aprovechamiento
+                aceptable de la memoria.</span></button>
+          </div>
+          <div class="explain">La fragmentación interna es propia de las particiones fijas, no de este esquema. El costo
+            real de Best&#8209;Fit es de tiempo: recorrer toda la lista de huecos en cada asignación.</div>
+        </div>
+
+        <div class="quiz-card">
+          <p class="q">3. En el ejemplo de la Fig. 2, el proceso P1 (212 KB) se asignó al hueco de 300 KB y no al de 500
+            o 600 KB. ¿Por qué?</p>
+          <div class="opts">
+            <button class="opt" data-correct="false"><span class="letter">A</span><span>Porque era el primer hueco de la
+                lista que revisó el sistema.</span></button>
+            <button class="opt" data-correct="false"><span class="letter">B</span><span>Porque era el hueco de mayor
+                tamaño entre los disponibles.</span></button>
+            <button class="opt" data-correct="true"><span class="letter">C</span><span>Porque, entre todos los que
+                alcanzaban, era el más chico — el que menos espacio libre dejaba sobrando.</span></button>
+            <button class="opt" data-correct="false"><span class="letter">D</span><span>Porque el sistema operativo lo
+                eligió sin ningún criterio particular.</span></button>
+          </div>
+          <div class="explain">Exacto: de los tres huecos que alcanzaban (300, 500 y 600), Best&#8209;Fit se queda con
+            el de 300 KB por ser el más ajustado al tamaño del proceso.</div>
+        </div>
+
+        <div class="quiz-card">
+          <p class="q">4. Después de aplicar Best&#8209;Fit en ese mismo ejemplo, ¿qué consecuencia se observa en la
+            memoria?</p>
+          <div class="opts">
+            <button class="opt" data-correct="false"><span class="letter">A</span><span>Toda la memoria queda
+                perfectamente aprovechada, sin ningún espacio libre.</span></button>
+            <button class="opt" data-correct="true"><span class="letter">B</span><span>Quedan varios fragmentos libres
+                muy pequeños que probablemente no le sirvan a futuros procesos.</span></button>
+            <button class="opt" data-correct="false"><span class="letter">C</span><span>La memoria se reorganiza sola
+                para eliminar los espacios libres sobrantes.</span></button>
+            <button class="opt" data-correct="false"><span class="letter">D</span><span>Se elimina por completo la
+                posibilidad de fragmentación externa.</span></button>
+          </div>
+          <div class="explain">Quedan tres fragmentos (83, 88 y 88 KB): es justamente el ejemplo de fragmentación
+            externa que Best&#8209;Fit tiende a producir por lo ajustado de sus asignaciones.</div>
+        </div>
+      </section>
+
+      <section id="fuentes" class="sources">
+        <span class="tag">0x09 — Fuentes</span>
+        <h2>Fuentes bibliográficas y digitales consultadas</h2>
+        <ol>
+          <li><span class="n">1</span><a href="https://labvirtual.webs.upv.es/Best_Fit.htm" target="_blank"
+              rel="noopener">Laboratorio Virtual UPV — "Asignación Contigua de Memoria con Particiones Variables: Mejor
+              Ajuste"</a><span class="src-meta">labvirtual.webs.upv.es</span></li>
+          <li><span class="n">2</span><a
+              href="https://www.geeksforgeeks.org/operating-systems/partition-allocation-methods-in-memory-management/"
+              target="_blank" rel="noopener">GeeksforGeeks — "Partition Allocation Methods in Memory
+              Management"</a><span class="src-meta">geeksforgeeks.org</span></li>
+          <li><span class="n">3</span><a href="https://phoenixnap.mx/glosario/asignaci%C3%B3n-de-mejor-ajuste"
+              target="_blank" rel="noopener">phoenixNAP — "¿Qué es la asignación de mejor ajuste?"</a><span
+              class="src-meta">phoenixnap.mx</span></li>
+          <li><span class="n">4</span><a href="https://www.fceia.unr.edu.ar/~diegob/so/presenta/09-Memoria.pdf"
+              target="_blank" rel="noopener">FCEIA — UNR — "Sistemas Operativos: Gestión de Memoria" (material de
+              cátedra)</a><span class="src-meta">fceia.unr.edu.ar</span></li>
+          <li><span class="n">5</span><a href="https://www.youtube.com/watch?v=9FBFr0_1sG8" target="_blank"
+              rel="noopener">"Best Fit | Algoritmo del mejor ajuste | Asignación de memoria" — YouTube</a><span
+              class="src-meta">youtube.com</span></li>
+        </ol>
+      </section>
+
+      <section id="equipo">
+        <span class="tag">0x0A — Equipo</span>
+        <h2>Grupo 12</h2>
+        <p>Trabajo elaborado por tres integrantes, con reparto de tareas equilibrado entre investigación, desarrollo de
+          la producción digital y elaboración de la autoevaluación.</p>
+        <div class="team">
+          <div class="card">
+            <div class="role">Integrante</div>
+            <div class="name">Enzo</div>
+            <div class="task">Concepto, características y funcionamiento del algoritmo; redacción del ejemplo práctico.
+            </div>
+          </div>
+          <div class="card">
+            <div class="role">Integrante</div>
+            <div class="name">Fabricio</div>
+            <div class="task">Investigación y fuentes; coordinación general; desarrollo técnico del blog.</div>
+          </div>
+          <div class="card">
+            <div class="role">Integrante</div>
+            <div class="name">Lautaro</div>
+            <div class="task">Ventajas/desventajas, aplicaciones prácticas, video y sección de autoevaluación.</div>
+          </div>
+        </div>
+      </section>
+
+    </main>
   </div>
-</footer>
 
-<script src="script.js"></script>
+  <footer>
+    <div class="shell">
+      <span>Sistemas Operativos — Actividad de Evaluación 1 — Grupo 12</span>
+      <span>Universidad de la Cuenca del Plata — Sede Corrientes</span>
+      <span>Ingeniería en Sistemas de Información</span>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
 </body>
+
 </html>
