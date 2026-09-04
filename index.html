@@ -142,9 +142,9 @@
         <table>
           <thead><tr><th>Proceso</th><th>Huecos revisados, en orden</th><th>Elegido</th><th>Motivo</th><th>Fragmento resultante</th></tr></thead>
           <tbody>
-            <tr><td>P1 · 212 KB</td><td>H1(100, no) → H2(500, sí)</td><td>H2 (500 KB)</td><td class="note">es el primero de la lista que alcanza; ni siquiera llega a mirar H3, H4 o H5</td><td>288 KB</td></tr>
-            <tr><td>P2 · 417 KB</td><td>H1(100, no) → resto de H2(288, no) → H3(200, no) → H4(300, no) → H5(600, sí)</td><td>H5 (600 KB)</td><td class="note">el primero que alcanza, tras descartar H1 y lo que quedaba de H2, H3 y H4</td><td>183 KB</td></tr>
-            <tr><td>P3 · 112 KB</td><td>H1(100, no) → resto de H2(288, sí)</td><td>H2 (fragmento de 288 KB)</td><td class="note">otra vez el primero que alcanza: lo que había quedado libre de H2 tras ubicar a P1</td><td>176 KB</td></tr>
+            <tr><td>P1 · 212 KB</td><td class="note mono-note">H1(100, no) → H2(500, sí)</td><td>H2 (500 KB)</td><td class="note">es el primero de la lista que alcanza; ni siquiera llega a mirar H3, H4 o H5</td><td>288 KB</td></tr>
+            <tr><td>P2 · 417 KB</td><td class="note mono-note">H1(100, no) → resto de H2(288, no) → H3(200, no) → H4(300, no) → H5(600, sí)</td><td>H5 (600 KB)</td><td class="note">el primero que alcanza, tras descartar H1 y lo que quedaba de H2, H3 y H4</td><td>183 KB</td></tr>
+            <tr><td>P3 · 112 KB</td><td class="note mono-note">H1(100, no) → resto de H2(288, sí)</td><td>H2 (fragmento de 288 KB)</td><td class="note">otra vez el primero que alcanza: lo que había quedado libre de H2 tras ubicar a P1</td><td>176 KB</td></tr>
           </tbody>
         </table>
       </div>

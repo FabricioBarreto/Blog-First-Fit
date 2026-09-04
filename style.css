@@ -122,7 +122,8 @@ table{ border-collapse: collapse; width:100%; font-size: 15px; }
 th, td{ text-align:left; padding: 10px 14px; border-bottom:1px solid var(--line); font-family: var(--font-mono); font-size: 13.5px; white-space:nowrap; font-variant-numeric: tabular-nums; }
 thead th{ background: var(--surface-2); font-family: var(--font-display); font-weight:600; font-size:12.5px; text-transform:uppercase; letter-spacing:.04em; color: var(--ink-soft); }
 tbody tr:last-child td{ border-bottom:none; }
-td.note{ white-space:normal; font-family: var(--font-body); font-size:14.5px; }
+td.note{ white-space:normal; font-family: var(--font-body); font-size:14.5px; min-width: 190px; }
+td.note.mono-note{ font-family: var(--font-mono); font-size:13.5px; min-width: 220px; }
 
 .pill{ display:inline-flex; align-items:center; gap:6px; padding:2px 10px; border-radius:2px; font-family: var(--font-mono); font-size:12px; }
 .pill.free{ background: var(--free-bg); color: var(--free); }
