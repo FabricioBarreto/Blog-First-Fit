@@ -301,6 +301,25 @@
           de 300&nbsp;KB (H4) que hubiera ajustado mucho mejor para P1 - deja de buscar apenas encuentra el primero que
           sirve. El resultado es más rápido de calcular, pero deja huecos enteros sin usar (H1, H3, H4) mientras
           concentra toda la ocupación - y la fragmentación - en las primeras posiciones que sí alcanzan (H2 y H5).</p>
+
+        <div class="sim">
+          <div class="sim-head">
+            <h3 style="margin:0;">Simulador paso a paso</h3>
+            <span class="sim-step-label" id="simStepLabel">Paso 1 de 14</span>
+          </div>
+          <div class="sim-incoming" id="simIncoming"></div>
+          <div class="sim-track" id="simTrack"></div>
+          <div class="sim-narration" id="simNarration"></div>
+          <div class="legend">
+            <span><span class="swatch" style="background:var(--free-bg)"></span> Hueco libre sin usar</span>
+            <span><span class="swatch" style="background:var(--accent)"></span> Proceso ubicado</span>
+            <span><span class="swatch" style="background:var(--fragment-bg)"></span> Fragmento libre resultante</span>
+          </div>
+          <div class="sim-controls" style="margin-top:14px;">
+            <button type="button" class="sim-btn" id="simPrev">&larr; Anterior</button>
+            <button type="button" class="sim-btn" id="simNext">Siguiente &rarr;</button>
+          </div>
+        </div>
       </section>
 
       <section id="ventajas">
